@@ -2,14 +2,50 @@ import os
 import sys
 import json
 import logging
+import time
 import pika
 import uuid
+
+from pika.adapters.utils.connection_workflow import (
+    AMQPConnectorSocketConnectError,
+)
 
 from plark_game.classes.newgame import load_agent
 from plark_game.classes.pantherAgent_load_agent import Panther_Agent_Load_Agent
 from plark_game.classes.pelicanAgent_load_agent import Pelican_Agent_Load_Agent
 
 from schema import deserialize_state
+
+##########################################################
+# set AGENTS_PATH to point to the directory containg your agents, relative
+# to the base `plark_ai_public` directory (i.e. keep "/plark_ai_public" at
+# the start of the path below - this is the directory as it will be seen
+# in the docker image).
+#
+# This directory should have sub-directories 'panther' and/or 'pelican', and
+# those should have a sub-directory containing your agent.
+# Agent can be either a .zip file and metadata json file, or a .py file.
+
+AGENTS_PATH = os.path.join(
+    "/plark_ai_public", "data", "agents", "test"
+)
+
+##########################################################
+# You shouldn't need to change BASIC_AGENTS_PATH, unless you
+# alter the directory structure of this package.
+
+BASIC_AGENTS_PATH = os.path.normpath(
+    os.path.join(
+        "/plark_ai_public",
+        "Components",
+        "plark-game",
+        "plark_game",
+        "agents",
+        "basic",
+    )
+)
+
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -31,7 +67,8 @@ def load_combatant(
 
     if ".py" in agent_path:
         return load_agent(
-            agent_path, agent_name, basic_agents_path, game, **kwargs
+
+            agent_path, agent_name, basic_agents_path, game, in_tournament=False,**kwargs
         )
     else:
 
@@ -59,6 +96,7 @@ def load_combatant(
                         agent_name,
                         basic_agents_path,
                         game,
+                        in_tournament=True,
                         **kwargs
                     )
 
@@ -73,6 +111,7 @@ def load_combatant(
                         algorithm,
                         observation,
                         image_based,
+                        in_tournament=True
                     )
                 elif metadata["agentplayer"] == "panther":
                     return Panther_Agent_Load_Agent(
@@ -80,6 +119,7 @@ def load_combatant(
                         algorithm,
                         observation,
                         image_based,
+                        in_tournament=True
                     )
 
     return None
@@ -95,12 +135,42 @@ class Combatant:
         self.ready = False
 
     def get_action(self, ch, method, props, body):
-
-        state = json.loads(body)
+        """
+        Participants: you may want to modify this function, if you're not using
+        a stable_baselines agent
+        """
+        message = json.loads(body)
+        # 'state' is the state information that can be known by the agent
+        # (i.e. the panther position is hidden from pelican agents, etc.)
+        state = message["state"]
         # convert json objects back into e.g. Torpedo instances
         deserialized_state = deserialize_state(state)
-        # ask the agent for the action, given this state
-        response = self.agent.getAction(deserialized_state)
+
+        # 'obs' is a list of numbers, representing the state in the format that
+        # is expected by stable_baselines
+        obs = message["obs"]
+        # 'obs_normalised' is the same as `obs`, but normalised such that values
+        # lie between 0 and 1
+        obs_normalised = message["obs_normalised"]
+        # 'domain_parameters' is the parameters of the domain
+        domain_parameters = message["domain_parameters"]
+        # 'domain_parameters_normalised' is as above, but normalised
+        domain_parameters_normalised = message["domain_parameters_normalised"]
+
+        # ask the agent for the action, given this observation ( or state, ...)
+        # below is an example using a stable_baselines agent, that just expects
+        # the observation.
+        # Modify this function call if you have a different
+        # type of agent that expects different information.
+        response = self.agent.getTournamentAction(
+            obs,
+            obs_normalised,
+            domain_parameters,
+            domain_parameters_normalised,
+            state
+        )
+
+        # send the action back to the battle
         ch.basic_publish(
             exchange="",
             routing_key=props.reply_to,
@@ -127,23 +197,6 @@ class Combatant:
         return True
 
 
-
-AGENTS_PATH = os.path.join(
-    "/plark_ai_public", "data", "agents", "models", "latest"
-)
-
-BASIC_AGENTS_PATH = os.path.normpath(
-    os.path.join(
-        "/plark_ai_public",
-        "Components",
-        "plark-game",
-        "plark_game",
-        "agents",
-        "basic",
-    )
-)
-
-
 def run_combatant(agent_type, agent_path, agent_name, basic_agents_path):
     """
     Run a combatant agent in the tournament environment.
@@ -162,10 +215,19 @@ def run_combatant(agent_type, agent_path, agent_name, basic_agents_path):
     else:
         hostname = "localhost"
 
-    connection = pika.BlockingConnection(
-        pika.ConnectionParameters(host=hostname)
-    )
-
+    connected = False
+    while not connected:
+        try:
+            connection = pika.BlockingConnection(
+                pika.ConnectionParameters(host=hostname)
+            )
+            connected = True
+        except (
+            pika.exceptions.AMQPConnectionError,
+            AMQPConnectorSocketConnectError,
+        ):
+            logger.info("Waiting for connection...")
+            time.sleep(2)
     channel = connection.channel()
 
     channel.queue_declare(queue=agent_queue)
@@ -192,10 +254,12 @@ if __name__ == "__main__":
             "First argument to combatant.py must be 'pelican' or 'panther'"
         )
 
-    subdirs = os.listdir(os.path.join(AGENTS_PATH, agent_type))
+    agent_path = os.path.join(AGENTS_PATH, agent_type)
+    subdirs = os.listdir(agent_path)
     for subdir in subdirs:
-        agent_path = os.path.join(AGENTS_PATH, agent_type, subdir)
-        break
+        if os.path.isdir(os.path.join(agent_path, subdir)):
+            agent_path = os.path.join(agent_path, subdir)
+            break
 
     agent_name = "comb_%s" % (agent_type)
 

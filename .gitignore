@@ -21,13 +21,15 @@ Components/backend/agents/models/*
 Components/plark-game/plark_game/agents/models/*
 Docker/plark_robot_tests/Results/*
 
+Components/agent-training/agent_training/logs
+
 
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
-
+*.swp
 # C extensions
 *.so
 
@@ -157,3 +159,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+
+.DS_Store
