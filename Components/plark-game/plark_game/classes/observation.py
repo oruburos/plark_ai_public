@@ -97,7 +97,7 @@ class Observation():
                 obs_shape.append(2)
 
             # Number of torpedoes remaining
-            assert game.pelican_parameters['default_torps'] <= self.max_torpedoes, "Starting number of sonobuoys must not be greater than maximum possible sonobuoys: {}".format(self.max_torpedoes)
+            assert game.pelican_parameters['default_torps'] <= self.max_torpedoes, "Starting number of torpedoes must not be greater than maximum possible torpedoes: {}".format(self.max_torpedoes)
             obs_shape.append(self.max_torpedoes)
 
             # Torpedo hunt enabled - boolean
