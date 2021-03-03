@@ -18,10 +18,10 @@ class Observation():
 
         #A boolean flag to indicate whether to add the domain parameters to the
         #observation space
-        self.domain_params_in_obs = kwargs.get('domain_params_in_obs', True)
+        self.domain_params_in_obs = kwargs.get('domain_params_in_obs', False)
 
         #A boolean flag to determine whether to normalise the observations
-        self.normalise = self.kwargs.get('normalise', True)
+        self.normalise = self.kwargs.get('normalise', False)
 
         #self.num_remaining_domain_params = len(self._determine_remaining_domain_parameters())
 
@@ -39,11 +39,11 @@ class Observation():
         #Simon's upper bounds
         self.max_grid_width = 35
         self.max_grid_height = 35
-        self.max_sonobuoys = 25
+        self.max_sonobuoys = 1
         self.max_turns = 50
         self.max_pelican_moves = 25
         self.max_panther_moves = 3
-        self.max_torpedoes = 5
+        self.max_torpedoes = 1
         self.max_torpedo_turns = 3
         self.max_torpedo_speed = 4
         self.max_torp_search_range = 4
@@ -111,6 +111,7 @@ class Observation():
                 # speed can also be zero:
                 # e.g. max speed of 3 leads to possible values [0,1,2,3]
                 obs_shape.append(self.max_torpedo_speed+1)
+                print(str(turn))
 
             # torpedo locations
             for i in range(self.max_torpedoes):
