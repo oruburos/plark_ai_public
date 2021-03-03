@@ -26,10 +26,17 @@ from schema import deserialize_state
 # those should have a sub-directory containing your agent.
 # Agent can be either a .zip file and metadata json file, or a .py file.
 
-AGENTS_PATH = os.path.join(
-    "/plark_ai_public", "data", "agents", "test"
-)
 
+AGENTS_PATH = os.path.join(
+    os.path.abspath(
+        os.path.abspath(
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir)
+        ),
+    ),
+    "data", 
+    "agents", 
+    "test"
+)
 ##########################################################
 # You shouldn't need to change BASIC_AGENTS_PATH, unless you
 # alter the directory structure of this package.
@@ -87,6 +94,7 @@ def load_combatant(
                 with open(metadata_filepath) as f:
                     metadata = json.load(f)
 
+                # NON-IMAGE-BASED
                 if (
                     "image_based" in metadata
                     and metadata["image_based"] is False
@@ -100,6 +108,7 @@ def load_combatant(
                         **kwargs
                     )
 
+                # IMAGE-BASED - NOT SUPPORTED FOR DSG TOURNAMENT
                 observation = None
                 image_based = True
                 algorithm = metadata["algorithm"]
