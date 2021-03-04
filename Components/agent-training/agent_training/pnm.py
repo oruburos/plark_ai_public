@@ -12,8 +12,8 @@ import numpy as np
 import pandas as pd
 import os
 import glob
-import helper
-import lp_solve
+from agent_training import helper
+from agent_training import lp_solve
 import matplotlib.pyplot as plt
 import time
 import itertools
@@ -106,6 +106,7 @@ class PNM():
                                            config_file_path,
                                            num_envs = self.num_parallel_envs,
                                            random_panther_start_position = True,
+                                           random_pelican_start_position = True,
                                            max_illegal_moves_per_turn = self.max_illegal_moves_per_turn,
                                            sparse = sparse,
                                            vecenv = self.parallel,
@@ -116,6 +117,7 @@ class PNM():
                                            config_file_path,
                                            num_envs = self.num_parallel_envs,
                                            random_panther_start_position = True,
+                                           random_pelican_start_position = True,
                                            max_illegal_moves_per_turn = self.max_illegal_moves_per_turn,
                                            sparse = sparse,
                                            vecenv = self.parallel,
