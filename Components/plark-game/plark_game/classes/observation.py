@@ -39,11 +39,11 @@ class Observation():
         #Simon's upper bounds
         self.max_grid_width = 35
         self.max_grid_height = 35
-        self.max_sonobuoys = 1
+        self.max_sonobuoys = 25
         self.max_turns = 50
         self.max_pelican_moves = 25
         self.max_panther_moves = 3
-        self.max_torpedoes = 1
+        self.max_torpedoes = 10
         self.max_torpedo_turns = 3
         self.max_torpedo_speed = 4
         self.max_torp_search_range = 4
@@ -81,6 +81,9 @@ class Observation():
 
             # sonobuoy range
             self.max_sb_range = int(max(self.max_grid_height, self.max_grid_width)/2)
+            print("max_sb_range {}".format(self.max_sb_range))
+            print("current obs_shape : {}".format(str(obs_shape)))
+            print("current size obs_shape : {}".format(len(obs_shape)))
             assert game.sonobuoy_parameters['active_range'] <= self.max_sb_range, "Sonobuoy active range must not be greater than max range: {}".format(self.max_sb_range)
             obs_shape.append(self.max_sb_range)
 
