@@ -10,7 +10,7 @@ class PlarkEnvNonImageState(PlarkEnv):
 		if kwargs is None:
 			kwargs = {}
 		kwargs['image_based'] = False
-		logger.info('non image kwargs: '+ str(kwargs))
+		logger.info('non image ENV kwargs: '+ str(kwargs))
 		self.image_based = False
 		super(PlarkEnvNonImageState, self).__init__(config_file_path,verbose, **kwargs)
 		self.image_based = False

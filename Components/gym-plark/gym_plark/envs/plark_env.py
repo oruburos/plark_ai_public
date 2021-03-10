@@ -39,7 +39,7 @@ class PlarkEnv(gym.Env):
                         self.driving_agent = 'pelican'
                         self.kwargs['driving_agent'] = self.driving_agent
 
-                #logger.info('plark.kwargs :'+ str(self.kwargs))
+                logger.info('plark.kwargs :'+ str(self.kwargs))
 
                 self.verbose = verbose
                 self.viewer = None
@@ -53,8 +53,8 @@ class PlarkEnv(gym.Env):
                 self.config_file_path = config_file_path
 
                 self.illegal_move_reward = -0.1
-                self.buoy_too_close_reward = -0.2
-                self.buoy_far_apart_reward = 0.5
+                self.buoy_too_close_reward = -0.3
+                self.buoy_far_apart_reward = 0.3
 
                 #1 UP
                 #2 UP RIGHT
@@ -182,6 +182,7 @@ class PlarkEnv(gym.Env):
                 if self.driving_agent == 'pelican': #If it wasn't an illegal move.
                         ## Reward for droping a sonobouy 
                         if action == 'drop_buoy' and illegal_move == False:
+                                print("SB deployed *************")
                                 self.globalSonobuoys = game.globalSonobuoys
                                 if len(self.globalSonobuoys)>1: 
                                         sonobuoy = self.globalSonobuoys[-1]

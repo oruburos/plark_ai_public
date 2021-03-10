@@ -1,19 +1,21 @@
-from plark_game.classes.pelicanAgent import PelicanAgent
+from plark_game.classes.pelicanAgentFixedSBs import PelicanAgentFixedSBs
 import jsonpickle
 import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-class Pelican_AgentBuoys(PelicanAgent):
+class Pelican_Agent_any_size_gridO(PelicanAgentFixedSBs):
 
 	def __init__(self):
-		super(Pelican_Agent_Any_Size, self).__init__()
+		super(Pelican_Agent_any_size_gridO, self).__init__()
 
 	def getAction(self, state):
+		self.getCenterMap(state)
 		if len(self.sb_locations) == 0:
 			self.sb_locations = self.generate_sb_locations(state)
-
-		return super(Pelican_Agent_Any_Size, self).getAction(state)
+		print("get action in pelican MY AGENT")
+		logger.info('get action in pelican MY AGENT')
+		return super(Pelican_Agent_any_size_gridO, self).getAction(state)
 
 	def generate_sb_locations(self, state):
 		grid = jsonpickle.decode(state['mapFile'])
@@ -42,3 +44,11 @@ class Pelican_AgentBuoys(PelicanAgent):
 			sb_locations.append(new_sb)
 		logger.info('sb_locations: '+str(sb_locations))
 		return sb_locations
+
+
+	def getCenterMap(self, state):
+		logger.info("state {}".format (str(state)))
+		logger.info('get center map')
+		logger.info("Getting center z`sb deployed {}/total {} torpedo {}/{} ".format(state['remaining_sonobuoys'] , state['remaining_sonobuoys'] ,state['remaining_torpedoes'],state['remaining_torpedoes']  ))
+
+
